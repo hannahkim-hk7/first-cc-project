@@ -1,8 +1,25 @@
-import { useState, useMemo } from 'react'
-import { employerPartners } from './mockData'
+import { useState, useMemo, useEffect } from 'react'
+import { supabase } from './supabase'
 
 const ALL = 'All'
 const PRODUCTS = ['Grow', 'TR Global', 'Navigator', 'Academy']
+
+function rowToEP(row) {
+  const products = [
+    row.offers_grow && 'Grow',
+    row.offers_global && 'TR Global',
+    row.offers_navigator && 'Navigator',
+    row.offers_academy && 'Academy',
+  ].filter(Boolean)
+
+  return {
+    id: row.id,
+    name: row.name,
+    mprEnabled: row.mpr_enabled,
+    platformNavEnabled: row.platform_nav_enabled,
+    products,
+  }
+}
 
 function SortIcon({ column, sortConfig }) {
   if (sortConfig.key !== column) {
@@ -37,11 +54,28 @@ function ProductTags({ products }) {
 }
 
 export default function App() {
+  const [employers, setEmployers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
   const [search, setSearch] = useState('')
   const [mprFilter, setMprFilter] = useState(ALL)
   const [navFilter, setNavFilter] = useState(ALL)
   const [productFilter, setProductFilter] = useState(ALL)
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' })
+
+  useEffect(() => {
+    async function fetchEmployers() {
+      const { data, error } = await supabase.from('ep_feature_summary').select('*')
+      if (error) {
+        setError(error.message)
+      } else {
+        setEmployers(data.map(rowToEP))
+      }
+      setLoading(false)
+    }
+    fetchEmployers()
+  }, [])
 
   function handleSort(key) {
     setSortConfig((prev) =>
@@ -52,7 +86,7 @@ export default function App() {
   }
 
   const filtered = useMemo(() => {
-    let result = employerPartners
+    let result = employers
 
     if (search.trim()) {
       const lower = search.toLowerCase()
@@ -74,7 +108,7 @@ export default function App() {
     }
 
     return result
-  }, [search, mprFilter, navFilter, productFilter])
+  }, [employers, search, mprFilter, navFilter, productFilter])
 
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => {
@@ -157,53 +191,61 @@ export default function App() {
         </select>
       </div>
 
-      <div className="result-count">
-        {sorted.length} employer{sorted.length !== 1 ? 's' : ''} found
-      </div>
-
-      {sorted.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">🔍</div>
-          <p>No employers match your current filters.</p>
-          <p className="empty-hint">Try adjusting your search or filter criteria.</p>
-        </div>
+      {loading ? (
+        <div className="loading-state">Loading employers...</div>
+      ) : error ? (
+        <div className="error-state">Error loading data: {error}</div>
       ) : (
-        <div className="table-wrapper">
-          <table className="ep-table">
-            <thead>
-              <tr>
-                <th onClick={() => handleSort('name')} className="sortable">
-                  Employer Partner <SortIcon column="name" sortConfig={sortConfig} />
-                </th>
-                <th onClick={() => handleSort('mpr')} className="sortable">
-                  MPR Enabled <SortIcon column="mpr" sortConfig={sortConfig} />
-                </th>
-                <th onClick={() => handleSort('nav')} className="sortable">
-                  Platform Navigation <SortIcon column="nav" sortConfig={sortConfig} />
-                </th>
-                <th onClick={() => handleSort('products')} className="sortable">
-                  Product(s) Offered <SortIcon column="products" sortConfig={sortConfig} />
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {sorted.map((ep) => (
-                <tr key={ep.id}>
-                  <td className="ep-name">{ep.name}</td>
-                  <td>
-                    <Badge value={ep.mprEnabled} />
-                  </td>
-                  <td>
-                    <Badge value={ep.platformNavEnabled} />
-                  </td>
-                  <td>
-                    <ProductTags products={ep.products} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <div className="result-count">
+            {sorted.length} employer{sorted.length !== 1 ? 's' : ''} found
+          </div>
+
+          {sorted.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">🔍</div>
+              <p>No employers match your current filters.</p>
+              <p className="empty-hint">Try adjusting your search or filter criteria.</p>
+            </div>
+          ) : (
+            <div className="table-wrapper">
+              <table className="ep-table">
+                <thead>
+                  <tr>
+                    <th onClick={() => handleSort('name')} className="sortable">
+                      Employer Partner <SortIcon column="name" sortConfig={sortConfig} />
+                    </th>
+                    <th onClick={() => handleSort('mpr')} className="sortable">
+                      MPR Enabled <SortIcon column="mpr" sortConfig={sortConfig} />
+                    </th>
+                    <th onClick={() => handleSort('nav')} className="sortable">
+                      Platform Navigation <SortIcon column="nav" sortConfig={sortConfig} />
+                    </th>
+                    <th onClick={() => handleSort('products')} className="sortable">
+                      Product(s) Offered <SortIcon column="products" sortConfig={sortConfig} />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sorted.map((ep) => (
+                    <tr key={ep.id}>
+                      <td className="ep-name">{ep.name}</td>
+                      <td>
+                        <Badge value={ep.mprEnabled} />
+                      </td>
+                      <td>
+                        <Badge value={ep.platformNavEnabled} />
+                      </td>
+                      <td>
+                        <ProductTags products={ep.products} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
