@@ -153,6 +153,14 @@ body {
   background: #fafafa;
 }
 
+.ep-table tbody tr.clickable-row {
+  cursor: pointer;
+}
+
+.ep-table tbody tr.clickable-row:hover {
+  background: #f5f3ff;
+}
+
 .ep-table td {
   padding: 13px 16px;
   vertical-align: middle;
@@ -202,6 +210,66 @@ body {
 
 .no-products {
   color: #9ca3af;
+}
+
+/* Detail view */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 6px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.back-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.detail-flags {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 28px;
+  padding: 16px 20px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.flag-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.flag-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.detail-section {
+  margin-top: 8px;
+}
+
+.detail-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 12px;
+}
+
+.count-cell {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a2e;
 }
 
 /* Loading / error states */

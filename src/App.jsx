@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { supabase } from './supabase'
+import EPDetail from './EPDetail'
 
 const ALL = 'All'
 const PRODUCTS = ['Grow', 'TR Global', 'Navigator', 'Academy']
@@ -57,6 +58,7 @@ export default function App() {
   const [employers, setEmployers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [selectedEP, setSelectedEP] = useState(null)
 
   const [search, setSearch] = useState('')
   const [mprFilter, setMprFilter] = useState(ALL)
@@ -140,6 +142,10 @@ export default function App() {
       return 0
     })
   }, [filtered, sortConfig])
+
+  if (selectedEP) {
+    return <EPDetail ep={selectedEP} onBack={() => setSelectedEP(null)} />
+  }
 
   return (
     <div className="app">
@@ -228,7 +234,7 @@ export default function App() {
                 </thead>
                 <tbody>
                   {sorted.map((ep) => (
-                    <tr key={ep.id}>
+                    <tr key={ep.id} onClick={() => setSelectedEP(ep)} className="clickable-row">
                       <td className="ep-name">{ep.name}</td>
                       <td>
                         <Badge value={ep.mprEnabled} />
